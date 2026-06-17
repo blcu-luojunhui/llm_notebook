@@ -18,6 +18,7 @@ function App() {
     workspaceOpen,
     loading,
     openDir,
+    pickNewDir,
     fsSupported,
   } = useNotes()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -38,6 +39,7 @@ function App() {
           onMoveNote={moveNote}
           onToggle={() => setSidebarCollapsed((c) => !c)}
           onOpenDir={openDir}
+          onSwitchDir={pickNewDir}
         />
         <main className="flex-1 overflow-hidden">
           <NotebookEditor

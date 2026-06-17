@@ -2,11 +2,13 @@ import { useState, useCallback, useEffect, useRef } from "react"
 import type { Note } from "@/types"
 import {
   openWorkspace,
+  pickNewWorkspace,
   closeWorkspace,
   loadAllNotes,
   saveNoteToFile,
   deleteNoteFile,
   moveNoteFile,
+  ensurePermission,
   isFileSystemSupported,
   getStoredHandle,
 } from "@/lib/filesystem"
@@ -44,20 +46,18 @@ export function useNotes() {
   // Auto-restore workspace from browser cache
   useEffect(() => {
     if (!isFileSystemSupported()) return
-    getStoredHandle().then((h) => {
+    getStoredHandle().then(async (h) => {
       if (!h) return
-      h.queryPermission({ mode: "readwrite" }).then((status) => {
-        if (status !== "granted") return
-        openWorkspace().then(() => {
-          loadAllNotes().then((files) => {
-            if (files.length > 0) {
-              setNotes(files)
-              setActiveId(files[0].id)
-            }
-            setWorkspaceOpen(true)
-          })
-        })
-      })
+      // Try to regain permission — ensurePermission calls requestPermission() if needed
+      const ok = await ensurePermission(h)
+      if (!ok) return
+      await openWorkspace()
+      const files = await loadAllNotes()
+      if (files.length > 0) {
+        setNotes(files)
+        setActiveId(files[0].id)
+      }
+      setWorkspaceOpen(true)
     })
   }, [])
 
@@ -85,6 +85,23 @@ export function useNotes() {
     setWorkspaceOpen(false)
     setNotes([])
     setActiveId(null)
+  }, [])
+
+  const pickNewDir = useCallback(async () => {
+    setLoading(true)
+    const handle = await pickNewWorkspace()
+    if (handle) {
+      const files = await loadAllNotes()
+      if (files.length > 0) {
+        setNotes(files)
+        setActiveId(files[0].id)
+      } else {
+        setNotes([])
+        setActiveId(null)
+      }
+      setWorkspaceOpen(true)
+    }
+    setLoading(false)
   }, [])
 
   const createNote = useCallback((folder?: string) => {
@@ -232,6 +249,7 @@ export function useNotes() {
     loading,
     openDir,
     closeDir,
+    pickNewDir,
     fsSupported: isFileSystemSupported(),
   }
 }

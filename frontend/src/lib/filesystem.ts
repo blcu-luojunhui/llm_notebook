@@ -65,7 +65,7 @@ async function clearHandle(): Promise<void> {
 
 // --- Permission ---
 
-async function ensurePermission(
+export async function ensurePermission(
   handle: FileSystemDirectoryHandle
 ): Promise<boolean> {
   const opts: FileSystemHandlePermissionDescriptor = { mode: "readwrite" }
@@ -112,6 +112,24 @@ export async function openWorkspace(): Promise<FileSystemDirectoryHandle | null>
     return handle
   } catch {
     // User cancelled
+    return null
+  }
+}
+
+export async function pickNewWorkspace(): Promise<FileSystemDirectoryHandle | null> {
+  if (!("showDirectoryPicker" in window)) {
+    console.warn("File System Access API not supported")
+    return null
+  }
+  try {
+    const handle = await window.showDirectoryPicker({
+      mode: "readwrite",
+      startIn: "documents",
+    })
+    await storeHandle(handle)
+    workspaceHandle = handle
+    return handle
+  } catch {
     return null
   }
 }

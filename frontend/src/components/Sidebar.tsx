@@ -19,6 +19,7 @@ import {
   FolderClosed,
   FolderOpen,
   FolderPlus,
+  FolderSync,
   Loader2,
   ChevronRight,
   ChevronDown,
@@ -66,6 +67,7 @@ interface SidebarProps {
   onMoveNote: (id: string, toFolder: string | undefined) => void
   onToggle: () => void
   onOpenDir: () => void
+  onSwitchDir: () => void
 }
 
 export function Sidebar({
@@ -81,6 +83,7 @@ export function Sidebar({
   onMoveNote,
   onToggle,
   onOpenDir,
+  onSwitchDir,
 }: SidebarProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [folders, setFolders] = useState<string[]>([])
@@ -306,14 +309,24 @@ export function Sidebar({
           </Tooltip>
         )}
         {workspaceOpen && (
-          <Tooltip>
-            <TooltipTrigger>
-              <Button variant="outline" size="icon" onClick={() => onCreate()} className="h-9 w-9 rounded-xl shadow-sm">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">新建笔记</TooltipContent>
-          </Tooltip>
+          <>
+            <Tooltip>
+              <TooltipTrigger>
+                <Button variant="outline" size="icon" onClick={() => onCreate()} className="h-9 w-9 rounded-xl shadow-sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">新建笔记</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger>
+                <button onClick={onSwitchDir} disabled={loading} className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted transition-all">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderSync className="h-4 w-4" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">切换工作目录</TooltipContent>
+            </Tooltip>
+          </>
         )}
       </div>
     )
@@ -326,10 +339,22 @@ export function Sidebar({
       {workspaceOpen ? (
         <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-border/50">
           <img src="/logo.png" alt="" className="h-7 w-7 rounded-lg shrink-0 shadow-sm" />
-          <div className="flex flex-col min-w-0 gap-0.5">
+          <div className="flex flex-col min-w-0 gap-0.5 flex-1">
             <span className="text-[13px] font-semibold text-foreground/90 tracking-tight leading-none">第一性笔记</span>
             <span className="text-[10px] text-muted-foreground/50 leading-none">回归本质，从头思考</span>
           </div>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                onClick={onSwitchDir}
+                disabled={loading}
+                className="h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground/60 hover:bg-muted hover:text-foreground transition-all"
+              >
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FolderSync className="h-3.5 w-3.5" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>切换工作目录</TooltipContent>
+          </Tooltip>
         </div>
       ) : fsSupported ? (
         <div className="px-3 py-3 border-b border-border/50">
