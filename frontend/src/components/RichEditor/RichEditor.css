@@ -68,15 +68,17 @@
 /* ── Code block wrapper (NodeView) ── */
 .code-block-wrapper {
   margin: 1rem 0;
-  border-radius: 0.625rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid oklch(0.88 0 0);
-  background: oklch(0.98 0 0);
+  border: 1px solid oklch(0.89 0.01 260);
+  background: oklch(0.975 0.003 260);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04);
 }
 
 .dark .code-block-wrapper {
   border-color: oklch(0.26 0.02 275);
-  background: oklch(0.145 0.01 280);
+  background: oklch(0.155 0.015 275);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.15);
 }
 
 /* ── Code block header ── */
@@ -85,13 +87,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.4rem 0.75rem 0.4rem 1rem;
-  border-bottom: 1px solid oklch(0.88 0 0);
-  background: oklch(0.96 0 0);
+  border-bottom: 1px solid oklch(0.89 0.01 260);
+  background: oklch(0.95 0.005 260);
 }
 
 .dark .code-block-header {
   border-bottom-color: oklch(0.26 0.02 275);
-  background: oklch(0.17 0.012 280);
+  background: oklch(0.17 0.015 275);
 }
 
 .code-block-lang {
@@ -165,31 +167,31 @@
 
 /* ── Inline code ── */
 .tiptap code {
-  background: oklch(0.92 0 0 / 0.7);
-  color: oklch(0.35 0.015 10);
-  border-radius: 0.25rem;
+  background: oklch(0.93 0.01 260 / 0.7);
+  color: oklch(0.4 0.08 260);
+  border-radius: 0.3rem;
   padding: 0.12em 0.4em;
   font-size: 0.875em;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 .dark .tiptap code {
-  background: oklch(0.22 0.02 280 / 0.7);
-  color: oklch(0.78 0.15 140);
+  background: oklch(0.22 0.03 275 / 0.7);
+  color: oklch(0.75 0.12 160);
 }
 
 /* Blockquotes */
 .tiptap blockquote {
-  border-left: 3px solid oklch(0.7 0 0);
+  border-left: 3px solid oklch(0.48 0.18 260 / 0.5);
   padding-left: 1rem;
   margin: 0.75rem 0;
-  color: oklch(0.5 0 0);
+  color: oklch(0.4 0.03 260);
   font-style: italic;
 }
 
 .dark .tiptap blockquote {
-  border-left-color: oklch(0.68 0.15 265);
-  color: oklch(0.55 0.05 268);
+  border-left-color: oklch(0.7 0.16 260 / 0.5);
+  color: oklch(0.6 0.04 270);
 }
 
 /* Lists */

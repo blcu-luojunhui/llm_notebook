@@ -82,10 +82,10 @@ function MenuBar({
     : "正文"
 
   const btnClass = (active: boolean) =>
-    `h-7 w-7 rounded-md flex items-center justify-center transition-colors ${
+    `h-7 w-7 rounded-lg flex items-center justify-center transition-all duration-150 ${
       active
-        ? "bg-accent text-accent-foreground"
-        : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+        ? "bg-primary/10 text-primary shadow-sm"
+        : "text-muted-foreground/70 hover:bg-muted hover:text-foreground"
     }`
 
   const HEADING_ITEMS = [
@@ -99,13 +99,13 @@ function MenuBar({
   ]
 
   return (
-    <div className="flex items-center gap-0.5 border-b border-border bg-card px-3 py-2 overflow-visible">
+    <div className="flex items-center gap-0.5 border-b border-border/60 bg-card/90 backdrop-blur-sm px-3 py-2 overflow-visible shadow-[0_1px_3px_0_rgb(0,0,0,0.03)]">
       <Tooltip>
         <TooltipTrigger>
           <button
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
-            className={`h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/50 disabled:opacity-30`}
+            className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground/70 hover:bg-muted hover:text-foreground disabled:opacity-25 transition-all"
           >
             <Undo2 className="h-3.5 w-3.5" />
           </button>
@@ -117,7 +117,7 @@ function MenuBar({
           <button
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
-            className={`h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/50 disabled:opacity-30`}
+            className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground/70 hover:bg-muted hover:text-foreground disabled:opacity-25 transition-all"
           >
             <Redo2 className="h-3.5 w-3.5" />
           </button>
@@ -131,13 +131,13 @@ function MenuBar({
       <div ref={headingRef} className="relative">
         <button
           onClick={() => setHeadingOpen(!headingOpen)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 h-7 text-sm text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground transition-colors min-w-[80px]"
+          className="flex items-center gap-1 rounded-lg px-2 py-1 h-7 text-[13px] text-muted-foreground/70 hover:bg-muted hover:text-foreground transition-all min-w-[80px]"
         >
           <span>{headingLabel}</span>
           <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         {headingOpen && (
-          <div className="absolute left-0 top-full z-50 mt-1 w-36 rounded-md border border-border bg-popover p-1 shadow-lg">
+          <div className="absolute left-0 top-full z-50 mt-1 w-36 rounded-xl border border-border/60 bg-popover p-1 shadow-[var(--shadow-3)]">
             {HEADING_ITEMS.map((item) => (
               <button
                 key={item.label}
@@ -145,7 +145,7 @@ function MenuBar({
                   item.action()
                   setHeadingOpen(false)
                 }}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-foreground hover:bg-accent transition-colors"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-foreground/80 hover:bg-muted transition-all"
               >
                 <span className="flex h-6 w-6 items-center justify-center text-muted-foreground">{item.icon}</span>
                 {item.label}
@@ -285,14 +285,14 @@ function MenuBar({
             <button
               onClick={() => onFontSizeChange(Math.max(FONT_SIZE_MIN, fontSize - 1))}
               disabled={fontSize <= FONT_SIZE_MIN}
-              className="h-7 w-6 rounded-md flex items-center justify-center text-xs text-muted-foreground hover:bg-accent/50 disabled:opacity-30 transition-colors"
+              className="h-7 w-6 rounded-lg flex items-center justify-center text-xs text-muted-foreground/70 hover:bg-muted hover:text-foreground disabled:opacity-25 transition-all"
             >
               −
             </button>
           </TooltipTrigger>
           <TooltipContent>缩小字体</TooltipContent>
         </Tooltip>
-        <span className="text-xs text-muted-foreground min-w-[2ch] text-center tabular-nums select-none">
+        <span className="text-[11px] font-medium text-muted-foreground/70 min-w-[2ch] text-center tabular-nums select-none">
           {fontSize}
         </span>
         <Tooltip>
@@ -300,7 +300,7 @@ function MenuBar({
             <button
               onClick={() => onFontSizeChange(Math.min(FONT_SIZE_MAX, fontSize + 1))}
               disabled={fontSize >= FONT_SIZE_MAX}
-              className="h-7 w-6 rounded-md flex items-center justify-center text-xs text-muted-foreground hover:bg-accent/50 disabled:opacity-30 transition-colors"
+              className="h-7 w-6 rounded-lg flex items-center justify-center text-xs text-muted-foreground/70 hover:bg-muted hover:text-foreground disabled:opacity-25 transition-all"
             >
               +
             </button>
@@ -500,7 +500,7 @@ export function RichEditor({ editor, onImageDrop }: RichEditorProps) {
     >
       <MenuBar editor={editor} fontSize={fontSize} onFontSizeChange={setFontSize} />
       <ScrollArea className="flex-1">
-        <div className="px-8 py-6 max-w-[900px]">
+        <div className="px-10 py-8 max-w-[860px]">
           <EditorContent editor={editor} className="prose prose-sm prose-stone dark:prose-invert max-w-none" />
           <TableControls editor={editor} />
         </div>
@@ -508,9 +508,9 @@ export function RichEditor({ editor, onImageDrop }: RichEditorProps) {
 
       {isDragOver && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-primary/50 bg-background/80 px-8 py-6">
-            <ImageIcon className="h-8 w-8 text-primary" />
-            <span className="text-sm font-medium text-primary">释放以插入图片</span>
+          <div className="flex flex-col items-center gap-2.5 rounded-2xl border-2 border-dashed border-primary/40 bg-background/90 backdrop-blur-sm px-10 py-8 shadow-[var(--shadow-3)]">
+            <ImageIcon className="h-9 w-9 text-primary/70" />
+            <span className="text-[13px] font-semibold text-primary/80">释放以插入图片</span>
           </div>
         </div>
       )}

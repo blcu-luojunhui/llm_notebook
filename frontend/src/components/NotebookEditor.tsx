@@ -4,6 +4,7 @@ import { editorExtensions } from "@/components/RichEditor/extensions"
 import { RichEditor } from "@/components/RichEditor/RichEditor"
 import "@/components/RichEditor/RichEditor.css"
 import type { Note } from "@/types"
+import { FileText } from "lucide-react"
 
 interface NotebookEditorProps {
   note: Note | null
@@ -29,7 +30,6 @@ export function NotebookEditor({
     },
   })
 
-  // Sync editor content when switching notes
   useEffect(() => {
     if (note && editor) {
       setTitle(note.title)
@@ -56,48 +56,50 @@ export function NotebookEditor({
     []
   )
 
+  // ── Empty state ──
   if (!note) {
     return (
       <div className="flex h-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-6 max-w-md text-center px-8 animate-fade-in">
-          <img
-            src="/logo.png"
-            alt="第一性笔记"
-            className="h-16 w-16 rounded-xl opacity-90"
-          />
-          <div className="flex flex-col gap-3">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              第一性笔记
-            </h1>
-            <p className="text-base font-medium text-primary/80">
-              回归本质，从头思考
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              拆解问题到不可再分的基本元素<br />
-              从最底层公理出发，重建你的认知体系
-            </p>
+        <div className="flex flex-col items-center gap-8 max-w-sm text-center px-8 animate-fade-in">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shadow-sm ring-1 ring-primary/10">
+              <FileText className="h-10 w-10 text-primary/50" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <h1 className="text-[22px] font-bold text-foreground/90 tracking-tight">
+                第一性笔记
+              </h1>
+              <p className="text-[13px] font-medium text-primary/60">
+                回归本质，从头思考
+              </p>
+              <p className="text-[13px] text-muted-foreground/60 leading-relaxed mt-1">
+                拆解问题到不可再分的基本元素<br />
+                从最底层公理出发，重建你的认知体系
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-3 mt-2">
-            <kbd className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
-              ⌘ N
+          <div className="inline-flex items-center gap-2.5 rounded-xl border border-border/60 bg-card px-4 py-2 shadow-sm">
+            <kbd className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground shadow-sm">
+              Ctrl+N
             </kbd>
-            <span className="text-xs text-muted-foreground">新建笔记</span>
+            <span className="text-[12px] text-muted-foreground/70">新建笔记</span>
           </div>
         </div>
       </div>
     )
   }
 
+  // ── Editor ──
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-background">
       {/* Title bar */}
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+      <div className="flex items-center border-b border-border/60 bg-card/80 backdrop-blur-sm px-6 py-4">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
           onKeyDown={handleTitleKeyDown}
-          className="flex-1 bg-transparent text-2xl font-bold text-foreground outline-none placeholder:text-muted-foreground/50"
+          className="flex-1 bg-transparent text-[22px] font-bold text-foreground/90 outline-none placeholder:text-muted-foreground/30 tracking-tight"
           placeholder="笔记标题..."
         />
       </div>

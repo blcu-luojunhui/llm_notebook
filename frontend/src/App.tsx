@@ -13,6 +13,7 @@ function App() {
     createNote,
     updateContent,
     renameNote,
+    moveNote,
     deleteNote,
     workspaceOpen,
     loading,
@@ -34,6 +35,7 @@ function App() {
           onSelect={setActiveId}
           onCreate={createNote}
           onDelete={deleteNote}
+          onMoveNote={moveNote}
           onToggle={() => setSidebarCollapsed((c) => !c)}
           onOpenDir={openDir}
         />

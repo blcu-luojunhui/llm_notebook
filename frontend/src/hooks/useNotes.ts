@@ -6,6 +6,7 @@ import {
   loadAllNotes,
   saveNoteToFile,
   deleteNoteFile,
+  moveNoteFile,
   isFileSystemSupported,
   getStoredHandle,
 } from "@/lib/filesystem"
@@ -86,20 +87,20 @@ export function useNotes() {
     setActiveId(null)
   }, [])
 
-  const createNote = useCallback(() => {
+  const createNote = useCallback((folder?: string) => {
     const now = new Date().toISOString()
     const note: Note = {
       id: crypto.randomUUID(),
       title: "未命名笔记",
       content: "",
+      folder,
       createdAt: now,
       updatedAt: now,
     }
     setNotes((prev) => [note, ...prev])
     setActiveId(note.id)
-    // Also create the file
     if (workspaceOpen) {
-      saveNoteToFile(note.id, note.title, note.content)
+      saveNoteToFile(note.id, note.title, note.content, folder)
     }
   }, [workspaceOpen])
 
@@ -130,7 +131,7 @@ export function useNotes() {
         const timer = setTimeout(() => {
           const latest = notesRef.current.find((n) => n.id === id)
           if (latest) {
-            saveNoteToFile(id, latest.title, content)
+            saveNoteToFile(id, latest.title, content, latest.folder)
           }
           saveTimers.current.delete(id)
         }, 500)
@@ -162,7 +163,28 @@ export function useNotes() {
       if (workspaceOpen) {
         const latest = notesRef.current.find((n) => n.id === id)
         if (latest) {
-          saveNoteToFile(id, title, latest.content)
+          saveNoteToFile(id, title, latest.content, latest.folder)
+        }
+      }
+    },
+    [workspaceOpen]
+  )
+
+  const moveNote = useCallback(
+    (id: string, toFolder: string | undefined) => {
+      setNotes((prev) => {
+        const next = prev.map((n) =>
+          n.id === id
+            ? { ...n, folder: toFolder, updatedAt: new Date().toISOString() }
+            : n
+        )
+        if (!workspaceOpen) saveLocalNotes(next)
+        return next
+      })
+      if (workspaceOpen) {
+        const note = notesRef.current.find((n) => n.id === id)
+        if (note) {
+          moveNoteFile(id, note.title, note.content, note.folder, toFolder)
         }
       }
     },
@@ -182,7 +204,8 @@ export function useNotes() {
       setActiveId((prev) => (prev === id ? null : prev))
 
       if (workspaceOpen) {
-        deleteNoteFile(id)
+        const note = notesRef.current.find((n) => n.id === id)
+        deleteNoteFile(id, note?.folder)
       }
     },
     [workspaceOpen]
@@ -203,6 +226,7 @@ export function useNotes() {
     createNote,
     updateContent,
     renameNote,
+    moveNote,
     deleteNote,
     workspaceOpen,
     loading,

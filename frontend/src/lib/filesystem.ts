@@ -169,6 +169,16 @@ export interface NoteFile {
   updatedAt: string
 }
 
+async function getDirHandle(path?: string): Promise<FileSystemDirectoryHandle> {
+  if (!workspaceHandle) throw new Error("No workspace open")
+  if (!path) return workspaceHandle
+  let handle = workspaceHandle
+  for (const part of path.split("/")) {
+    handle = await handle.getDirectoryHandle(part)
+  }
+  return handle
+}
+
 export async function loadAllNotes(): Promise<NoteFile[]> {
   if (!workspaceHandle) return []
 
@@ -178,7 +188,8 @@ export async function loadAllNotes(): Promise<NoteFile[]> {
   for (const m of meta.notes) {
     const fileName = `${m.id}.html`
     try {
-      const fileHandle = await workspaceHandle.getFileHandle(fileName)
+      const dirHandle = await getDirHandle(m.folder)
+      const fileHandle = await dirHandle.getFileHandle(fileName)
       const file = await fileHandle.getFile()
       const content = await file.text()
       notes.push({ ...m, content, folder: m.folder })
@@ -196,7 +207,8 @@ export async function loadAllNotes(): Promise<NoteFile[]> {
 export async function saveNoteToFile(
   id: string,
   title: string,
-  content: string
+  content: string,
+  folder?: string
 ): Promise<string> {
   if (!workspaceHandle) throw new Error("No workspace open")
 
@@ -207,18 +219,21 @@ export async function saveNoteToFile(
   if (existing) {
     existing.title = title
     existing.updatedAt = now
+    existing.folder = folder
   } else {
     meta.notes.unshift({
       id,
       title,
+      folder,
       createdAt: now,
       updatedAt: now,
     })
   }
 
-  // Write the .html file
+  // Write the .html file inside the target folder
+  const dirHandle = await getDirHandle(folder)
   const fileName = `${id}.html`
-  const fileHandle = await workspaceHandle.getFileHandle(fileName, {
+  const fileHandle = await dirHandle.getFileHandle(fileName, {
     create: true,
   })
   const writable = await fileHandle.createWritable()
@@ -231,16 +246,17 @@ export async function saveNoteToFile(
   return now
 }
 
-export async function deleteNoteFile(id: string): Promise<void> {
+export async function deleteNoteFile(id: string, folder?: string): Promise<void> {
   if (!workspaceHandle) throw new Error("No workspace open")
 
   const meta = await readMetaFile(workspaceHandle)
   meta.notes = meta.notes.filter((n) => n.id !== id)
   await writeMetaFile(workspaceHandle, meta)
 
+  const dirHandle = await getDirHandle(folder)
   const fileName = `${id}.html`
   try {
-    await workspaceHandle.removeEntry(fileName)
+    await dirHandle.removeEntry(fileName)
   } catch {
     // File doesn't exist, ignore
   }
@@ -248,29 +264,86 @@ export async function deleteNoteFile(id: string): Promise<void> {
 
 // --- Folders ---
 
-export async function createFolder(name: string): Promise<void> {
+export async function createFolder(name: string, parentPath?: string): Promise<void> {
   if (!workspaceHandle) throw new Error("No workspace open")
-  await workspaceHandle.getDirectoryHandle(name, { create: true })
+  const parent = await getDirHandle(parentPath)
+  await parent.getDirectoryHandle(name, { create: true })
+}
+
+async function listDirRecursive(
+  handle: FileSystemDirectoryHandle,
+  prefix: string
+): Promise<string[]> {
+  const folders: string[] = []
+  const iter = handle as FileSystemDirectoryHandle & AsyncIterable<[string, FileSystemHandle]>
+  for await (const [name, entry] of iter) {
+    if (name.startsWith(".")) continue
+    if (name.endsWith(".html")) continue
+    if (entry.kind === "directory") {
+      const path = prefix ? `${prefix}/${name}` : name
+      folders.push(path)
+      const subHandle = await handle.getDirectoryHandle(name)
+      const subs = await listDirRecursive(subHandle, path)
+      folders.push(...subs)
+    }
+  }
+  return folders
 }
 
 export async function listFolders(): Promise<string[]> {
   if (!workspaceHandle) return []
-  const folders: string[] = []
-  // FileSystemDirectoryHandle supports async iteration in modern browsers
-  const handle = workspaceHandle as FileSystemDirectoryHandle & AsyncIterable<[string, FileSystemHandle]>
-  for await (const [name, entry] of handle) {
-    if (name.startsWith(".")) continue
-    if (name.endsWith(".html")) continue
-    if (entry.kind === "directory") {
-      folders.push(name)
-    }
-  }
+  const folders = await listDirRecursive(workspaceHandle, "")
   return folders.sort()
 }
 
-export async function deleteFolder(name: string): Promise<void> {
+export async function deleteFolder(path: string): Promise<void> {
   if (!workspaceHandle) throw new Error("No workspace open")
-  await workspaceHandle.removeEntry(name, { recursive: true })
+  const parts = path.split("/")
+  if (parts.length === 1) {
+    await workspaceHandle.removeEntry(path, { recursive: true })
+  } else {
+    const parentPath = parts.slice(0, -1).join("/")
+    const parent = await getDirHandle(parentPath)
+    await parent.removeEntry(parts[parts.length - 1], { recursive: true })
+  }
+}
+
+export async function moveNoteFile(
+  id: string,
+  title: string,
+  content: string,
+  fromFolder: string | undefined,
+  toFolder: string | undefined
+): Promise<void> {
+  if (!workspaceHandle) throw new Error("No workspace open")
+  if (fromFolder === toFolder) return
+
+  // Update metadata
+  const meta = await readMetaFile(workspaceHandle)
+  const entry = meta.notes.find((n) => n.id === id)
+  if (entry) {
+    entry.folder = toFolder
+    entry.updatedAt = new Date().toISOString()
+    await writeMetaFile(workspaceHandle, meta)
+  }
+
+  // Write file to target directory
+  const targetDir = await getDirHandle(toFolder)
+  const fileName = `${id}.html`
+  const fileHandle = await targetDir.getFileHandle(fileName, { create: true })
+  const writable = await fileHandle.createWritable()
+  await writable.write(content)
+  await writable.close()
+
+  // Remove file from source directory
+  if (fromFolder !== toFolder) {
+    const sourceDir = await getDirHandle(fromFolder)
+    try {
+      await sourceDir.removeEntry(fileName)
+    } catch {
+      // File didn't exist at source, ignore
+    }
+  }
 }
 
 export function isFileSystemSupported(): boolean {
