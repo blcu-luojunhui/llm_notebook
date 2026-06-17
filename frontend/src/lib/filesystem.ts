@@ -310,7 +310,6 @@ export async function deleteFolder(path: string): Promise<void> {
 
 export async function moveNoteFile(
   id: string,
-  title: string,
   content: string,
   fromFolder: string | undefined,
   toFolder: string | undefined

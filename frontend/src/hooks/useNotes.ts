@@ -184,7 +184,7 @@ export function useNotes() {
       if (workspaceOpen) {
         const note = notesRef.current.find((n) => n.id === id)
         if (note) {
-          moveNoteFile(id, note.title, note.content, note.folder, toFolder)
+          moveNoteFile(id, note.content, note.folder, toFolder)
         }
       }
     },
