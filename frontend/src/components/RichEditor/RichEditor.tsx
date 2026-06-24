@@ -500,7 +500,7 @@ export function RichEditor({ editor, onImageDrop }: RichEditorProps) {
     >
       <MenuBar editor={editor} fontSize={fontSize} onFontSizeChange={setFontSize} />
       <ScrollArea className="flex-1">
-        <div className="px-10 py-8 max-w-[860px]">
+        <div className="px-10 py-8 pb-[10vh] w-[60vw] mx-auto">
           <EditorContent editor={editor} className="prose prose-sm prose-stone dark:prose-invert max-w-none" />
           <TableControls editor={editor} />
         </div>
